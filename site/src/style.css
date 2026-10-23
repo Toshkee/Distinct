@@ -508,6 +508,7 @@ em {
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #e9733f 0%, var(--orange) 45%, #b8461c 100%);
   pointer-events: none;
+  will-change: transform;
 }
 .hero__scroll {
   position: absolute;
@@ -651,6 +652,15 @@ em {
   border-radius: var(--radius);
   overflow: hidden;
   transform-origin: 50% 0;
+  will-change: transform;
+}
+.card__shade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
 }
 .card--ink {
   background: var(--ink);

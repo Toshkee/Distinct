@@ -185,10 +185,9 @@ function scrollAnimations() {
   // Showreel grows to full width as it scrolls in
   gsap.fromTo(
     '.reel__frame',
-    { scale: 0.72, borderRadius: 48 },
+    { scale: 0.72 },
     {
       scale: 1,
-      borderRadius: 24,
       ease: 'none',
       scrollTrigger: { trigger: '.reel', start: 'top bottom', end: 'center 55%', scrub: true },
     },
@@ -243,17 +242,13 @@ function scrollAnimations() {
   cards.forEach((card, i) => {
     const next = cards[i + 1];
     if (!next) return;
-    // explicit start value: tweening from the computed `filter: none` starts at brightness(0)
-    gsap.fromTo(
-      card,
-      { scale: 1, filter: 'brightness(1)' },
-      {
-        scale: 0.92 - (cards.length - i - 2) * 0.02,
-        filter: 'brightness(0.9)',
-        ease: 'none',
-        scrollTrigger: { trigger: next, start: 'top bottom', end: 'top 20%', scrub: true },
-      },
-    );
+    // Dim with an overlay's opacity rather than `filter`, which repaints the whole card every frame
+    const shade = document.createElement('span');
+    shade.className = 'card__shade';
+    card.append(shade);
+    const scrollTrigger = { trigger: next, start: 'top bottom', end: 'top 20%', scrub: true };
+    gsap.to(card, { scale: 0.92 - (cards.length - i - 2) * 0.02, ease: 'none', scrollTrigger });
+    gsap.to(shade, { opacity: 0.12, ease: 'none', scrollTrigger: { ...scrollTrigger } });
   });
 
   const mm = gsap.matchMedia();

@@ -4,3 +4,4 @@ video/out/
 *.log
 .DS_Store
 .claude/
+.vercel/
