@@ -1,0 +1,8 @@
+    <meta name="theme-color" content="#151311" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script>
+      // Arriving from a page transition: start covered so there is no flash
+      try {
+        if (sessionStorage.getItem('distinct-wipe')) document.documentElement.classList.add('is-wiping');
+      } catch (e) {}
+    </script>

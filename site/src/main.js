@@ -1,126 +1,54 @@
-import '@fontsource-variable/geist';
-import '@fontsource/instrument-serif/latin-400-italic.css';
-import '@fontsource/instrument-serif/latin-ext-400-italic.css';
-import './style.css';
-
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { SplitText } from 'gsap/SplitText';
 import { Flip } from 'gsap/Flip';
-import Lenis from 'lenis';
+import {
+  $,
+  $$,
+  animateCta,
+  animateFooter,
+  arrivedWithWipe,
+  finePointer,
+  gsap,
+  initSite,
+  reduced,
+  revealHeadings,
+  scrubWords,
+  ScrollTrigger,
+  SplitText,
+  wipeIn,
+} from './common.js';
+import { getLang, t, tagLabels } from './i18n.js';
+import { caseUrl, categoriesOf, projects } from './projects.js';
 
-import logoPaths from './logo-paths.json';
-import { applyLanguage, getLang, t, tagLabels } from './i18n.js';
-import { projects, categoriesOf } from './projects.js';
-
-gsap.registerPlugin(ScrollTrigger, SplitText, Flip);
-
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const $ = (s, root = document) => root.querySelector(s);
-const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+gsap.registerPlugin(Flip);
 
 /* ---------- Content ---------- */
-
-let logoId = 0;
-function buildLogo(el) {
-  const id = `logo-clip-${logoId++}`;
-  const letters = logoPaths
-    .filter((p) => !p.accent)
-    .map((p) => `<path class="letter" fill-rule="evenodd" d="${p.d}"/>`)
-    .join('');
-  const dot = logoPaths.find((p) => p.accent);
-  el.innerHTML = `<svg class="logo-svg" viewBox="859 48.906 201.44 41.094" role="img" aria-label="Distinct">
-    <defs><clipPath id="${id}"><rect x="859" y="48.906" width="201.44" height="41.094"/></clipPath></defs>
-    <g clip-path="url(#${id})">${letters}</g>
-    <path class="accent" d="${dot.d}"/></svg>`;
-}
 
 function renderProjects() {
   const lang = getLang();
   const label = (tag) => tagLabels[lang][tag] || tag;
-  const catName = { me: { finance: 'Finansije', marketing: 'Marketing', consulting: 'Konsalting' }, en: { finance: 'Finance', marketing: 'Marketing', consulting: 'Consulting' } }[lang];
-  $('[data-grid]').innerHTML = projects
-    .map((p, i) => {
-      const cats = categoriesOf(p);
-      return `<article class="tile${i < 2 ? ' tile--feature' : ''}" data-cats="${cats.join(' ')}" data-cursor="${t('view')}">
-        <div class="tile__img">
-          <img src="/img/portfolio/${p.img}" alt="${p.name}" loading="lazy" width="600" height="600" />
-          <div class="tile__tags">${p.tags.map((tag) => `<span>${label(tag)}</span>`).join('')}</div>
-        </div>
-        <h3 class="tile__name">${p.name}<small>${cats.map((c) => catName[c]).join(' · ')}</small></h3>
-      </article>`;
-    })
-    .join('') +
+  $('[data-grid]').innerHTML =
+    projects
+      .map((p, i) => {
+        const cats = categoriesOf(p);
+        return `<a class="tile${i < 2 ? ' tile--feature' : ''}" href="${caseUrl(p)}" data-cats="${cats.join(' ')}" data-cursor="${t('view')}">
+          <span class="tile__img">
+            <img src="/img/portfolio/${p.img}" alt="${p.name}" loading="lazy" width="600" height="600" />
+            <span class="tile__tags">${p.tags.map((tag) => `<span>${label(tag)}</span>`).join('')}</span>
+          </span>
+          <span class="tile__name">${p.name}<small>${cats.map((c) => t('cat')[c]).join(' · ')}</small></span>
+        </a>`;
+      })
+      .join('') +
     `<a class="tile tile--cta" href="#kontakt" data-cats="all" data-cursor-hide>
-      <span class="tile__img"><span class="tile__cta">${lang === 'en' ? 'Your brand<br><em>next?</em>' : 'Vaš brend<br><em>sljedeći?</em>'}<b>↗</b></span></span>
+      <span class="tile__img"><span class="tile__cta">${t('ctaTile')}<b>↗</b></span></span>
     </a>`;
 }
 
-applyLanguage();
-$$('[data-logo]').forEach(buildLogo);
+const { lenis, scrollToTarget } = initSite();
 renderProjects();
-
-/* ---------- Smooth scroll ---------- */
-
-let lenis = null;
-if (!reduced) {
-  lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1 });
-  lenis.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add((time) => lenis.raf(time * 1000));
-  gsap.ticker.lagSmoothing(0);
-}
-
-const headerOffset = () => -($('.header').offsetHeight - 1);
-function scrollToTarget(target) {
-  if (lenis) lenis.scrollTo(target, { offset: headerOffset(), duration: 1.4 });
-  else target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
-}
-
-$$('a[href^="#"]').forEach((a) =>
-  a.addEventListener('click', (e) => {
-    const id = a.getAttribute('href');
-    const target = id === '#top' ? document.body : $(id);
-    if (!target) return;
-    e.preventDefault();
-    closeMenu();
-    scrollToTarget(target);
-  }),
-);
-
-/* ---------- Header & menu ---------- */
-
-const header = $('.header');
-let lastY = 0;
-const onScroll = (y) => {
-  header.classList.toggle('is-scrolled', y > 40);
-  const goingDown = y > lastY && y > 400;
-  if (!document.body.classList.contains('menu-open')) header.classList.toggle('is-hidden', goingDown);
-  lastY = y;
-};
-if (lenis) lenis.on('scroll', ({ scroll }) => onScroll(scroll));
-else addEventListener('scroll', () => onScroll(scrollY), { passive: true });
-
-const burger = $('.burger');
-function closeMenu() {
-  document.body.classList.remove('menu-open');
-  burger.setAttribute('aria-expanded', 'false');
-  $('.menu').setAttribute('aria-hidden', 'true');
-  lenis?.start();
-}
-burger.addEventListener('click', () => {
-  const open = !document.body.classList.contains('menu-open');
-  if (!open) return closeMenu();
-  document.body.classList.add('menu-open');
-  burger.setAttribute('aria-expanded', 'true');
-  $('.menu').setAttribute('aria-hidden', 'false');
-  header.classList.remove('is-hidden');
-  lenis?.stop();
-});
 
 // Highlight the nav item for the section in view
 $$('.header__nav a').forEach((link) => {
-  const section = $(link.getAttribute('href'));
+  const section = $(new URL(link.href).hash);
   if (!section) return;
   ScrollTrigger.create({
     trigger: section,
@@ -130,57 +58,6 @@ $$('.header__nav a').forEach((link) => {
     onToggle: (self) => link.classList.toggle('is-active', self.isActive),
   });
 });
-
-/* ---------- Videos: play only while visible ---------- */
-
-const videoObserver = new IntersectionObserver(
-  (entries) =>
-    entries.forEach(({ target, isIntersecting }) => {
-      if (isIntersecting) {
-        if (target.preload === 'none') target.preload = 'auto';
-        target.play().catch(() => {});
-      } else target.pause();
-    }),
-  { rootMargin: '120px 0px' },
-);
-if (!reduced) $$('video').forEach((v) => videoObserver.observe(v));
-
-/* ---------- Cursor ---------- */
-
-if (finePointer && !reduced) {
-  const cursor = $('.cursor');
-  const label = $('.cursor__label');
-  const xTo = gsap.quickTo(cursor, 'x', { duration: 0.45, ease: 'power3' });
-  const yTo = gsap.quickTo(cursor, 'y', { duration: 0.45, ease: 'power3' });
-  addEventListener('pointermove', (e) => {
-    cursor.classList.add('is-visible');
-    xTo(e.clientX);
-    yTo(e.clientY);
-  });
-  document.addEventListener('pointerleave', () => cursor.classList.remove('is-visible'));
-  document.addEventListener('pointerover', (e) => {
-    const withLabel = e.target.closest('[data-cursor]');
-    cursor.classList.toggle('is-label', !!withLabel);
-    if (withLabel) label.textContent = withLabel.dataset.cursor;
-    cursor.classList.toggle('is-hidden', !!e.target.closest('[data-cursor-hide]'));
-  });
-
-  // Magnetic buttons
-  $$('[data-magnetic]').forEach((el) => {
-    const strength = el.classList.contains('cta__btn') ? 0.35 : 0.2;
-    const mx = gsap.quickTo(el, 'x', { duration: 0.6, ease: 'elastic.out(1, 0.4)' });
-    const my = gsap.quickTo(el, 'y', { duration: 0.6, ease: 'elastic.out(1, 0.4)' });
-    el.addEventListener('pointermove', (e) => {
-      const r = el.getBoundingClientRect();
-      mx((e.clientX - r.left - r.width / 2) * strength);
-      my((e.clientY - r.top - r.height / 2) * strength);
-    });
-    el.addEventListener('pointerleave', () => {
-      mx(0);
-      my(0);
-    });
-  });
-}
 
 /* ---------- Project filter ---------- */
 
@@ -302,28 +179,16 @@ function scrollAnimations() {
   track.innerHTML += track.innerHTML;
   $$('img', track).forEach((img, i) => i >= track.children.length / 2 && img.setAttribute('aria-hidden', 'true'));
   const marquee = gsap.to(track, { xPercent: -50, duration: 38, ease: 'none', repeat: -1 });
-  let direction = 1;
   ScrollTrigger.create({
     onUpdate: (self) => {
-      direction = self.direction;
       const boost = Math.min(Math.abs(self.getVelocity()) / 300, 4);
-      gsap.to(marquee, { timeScale: direction * (1 + boost), duration: 0.3, overwrite: true });
-      gsap.to(marquee, { timeScale: direction, duration: 1.2, delay: 0.3 });
+      gsap.to(marquee, { timeScale: self.direction * (1 + boost), duration: 0.3, overwrite: true });
+      gsap.to(marquee, { timeScale: self.direction, duration: 1.2, delay: 0.3 });
     },
   });
 
   // Statement reads itself as you scroll
-  const statement = SplitText.create('.statement__text', { type: 'words', wordsClass: 'word' });
-  gsap.fromTo(
-    statement.words,
-    { opacity: 0.14 },
-    {
-      opacity: 1,
-      stagger: 0.1,
-      ease: 'none',
-      scrollTrigger: { trigger: '.statement__text', start: 'top 82%', end: 'bottom 45%', scrub: true },
-    },
-  );
+  scrubWords($('.statement__text'));
 
   // Counters
   $$('[data-count]').forEach((el) => {
@@ -337,26 +202,7 @@ function scrollAnimations() {
     });
   });
 
-  // Headline line reveals
-  $$('.split, .eyebrow:not(.hero__eyebrow)').forEach((el) => {
-    if (el.classList.contains('eyebrow')) {
-      gsap.from(el, { y: 16, opacity: 0, duration: 0.9, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 90%' } });
-      return;
-    }
-    SplitText.create(el, {
-      type: 'lines',
-      mask: 'lines',
-      autoSplit: true,
-      onSplit: (self) =>
-        gsap.from(self.lines, {
-          yPercent: 110,
-          duration: 1.1,
-          stagger: 0.08,
-          ease: 'expo.out',
-          scrollTrigger: { trigger: el, start: 'top 85%' },
-        }),
-    });
-  });
+  revealHeadings();
 
   // Approach title (not split, it's pinned)
   gsap.from('.approach .h2', { y: 40, opacity: 0, duration: 1.2, ease: 'expo.out', scrollTrigger: { trigger: '.approach', start: 'top 70%' } });
@@ -433,39 +279,45 @@ function scrollAnimations() {
     onEnter: (els) => gsap.from(els, { y: 50, opacity: 0, duration: 1, stagger: 0.08, ease: 'expo.out', clearProps: 'transform,opacity' }),
   });
 
-  // Big CTA button pops in
-  gsap.from('.cta__btn', { scale: 0, rotate: -40, duration: 1.2, ease: 'back.out(1.6)', scrollTrigger: { trigger: '.cta', start: 'top 60%' } });
-
-  // Footer wordmark rises letter by letter
-  gsap.from('.footer__mark .letter', {
-    y: 44,
-    duration: 1.2,
-    stagger: 0.06,
-    ease: 'expo.out',
-    scrollTrigger: { trigger: '.footer__mark', start: 'top 95%' },
-  });
-  gsap.from('.footer__mark .accent', {
-    y: -80,
-    opacity: 0,
-    duration: 1.2,
-    delay: 0.5,
-    ease: 'bounce.out',
-    scrollTrigger: { trigger: '.footer__mark', start: 'top 95%' },
-  });
+  animateCta();
+  animateFooter();
 }
+
+/* ---------- Boot ---------- */
+
+// The intro plays from the top; links like /#projekti jump straight to their section
+history.scrollRestoration = 'manual';
+scrollTo(0, 0);
+const hashTarget = location.hash.length > 1 ? $(location.hash) : null;
+
+let firstVisit = false;
+try {
+  firstVisit = !arrivedWithWipe && !hashTarget && !sessionStorage.getItem('distinct-intro');
+  sessionStorage.setItem('distinct-intro', '1');
+} catch {}
 
 if (reduced) {
   document.documentElement.classList.add('reduced');
   $('.loader').remove();
+  wipeIn();
+  hashTarget?.scrollIntoView();
 } else {
-  // The intro always plays from the top
-  history.scrollRestoration = 'manual';
-  scrollTo(0, 0);
-  document.body.classList.add('is-loading');
-  lenis.stop();
+  if (firstVisit) {
+    document.body.classList.add('is-loading');
+    lenis.stop();
+  } else $('.loader').remove();
+
   document.fonts.ready.then(() => {
     scrollAnimations();
-    loader();
+    if (firstVisit) loader();
+    else {
+      if (hashTarget) {
+        ScrollTrigger.refresh();
+        scrollToTarget(hashTarget, true);
+      }
+      intro();
+      wipeIn();
+    }
     addEventListener('load', () => ScrollTrigger.refresh());
   });
 }

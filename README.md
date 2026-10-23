@@ -12,6 +12,13 @@ Otvara se na http://127.0.0.1:5291
 
 Produkcijski build: `npm run build` → `site/dist/`
 
+## Studije slučaja
+Svaki projekat ima stranicu `/projekti/<slug>/` (npr. `/projekti/oblun/`), sa sekcijama problem → rješenje → rezultat.
+- Sadržaj (ME/EN) je u `site/src/projects.js`. Tekstovi su nacrti napisani na osnovu isporučenih usluga, pa ih treba provjeriti sa klijentima.
+- Mjerljive rezultate dodajte u `metrics`, npr. `{ value: '+38%', label: { me: 'direktnih rezervacija', en: 'direct bookings' } }`. Dok je `metrics` prazan, stranica prikazuje listu isporučenih usluga.
+- Šablon je `site/case.html`. Header i footer su zajednički u `site/partials/`.
+- Build pravi zasebnu HTML stranicu po projektu, sa naslovom i opisom za SEO.
+
 ## Video (Remotion)
 ```bash
 cd video && npm install

@@ -95,6 +95,17 @@ const en = {
 
   'footer.tag': 'Business design consulting — Podgorica, Montenegro.',
   'footer.up': 'Back to top ↑',
+
+  'case.back': 'All work',
+  'case.client': 'Client',
+  'case.industry': 'Industry',
+  'case.location': 'Location',
+  'case.services': 'Services',
+  'case.problem': 'Problem',
+  'case.solution': 'Solution',
+  'case.result': 'Result',
+  'case.next': 'Next project',
+  'case.cta': 'The next story could be <em>yours.</em>',
 };
 
 const ui = {
@@ -102,11 +113,17 @@ const ui = {
     view: 'Pogledaj',
     formError: 'Popunite ime, ispravan email i poruku.',
     formOk: 'Hvala! Otvaramo vaš email program sa pripremljenom porukom.',
+    delivered: 'Šta smo isporučili',
+    cat: { finance: 'Finansije', marketing: 'Marketing', consulting: 'Konsalting' },
+    ctaTile: 'Vaš brend<br><em>sljedeći?</em>',
   },
   en: {
     view: 'View',
     formError: 'Please fill in your name, a valid email and a message.',
     formOk: 'Thank you! Opening your email app with the message ready to send.',
+    delivered: 'What we delivered',
+    cat: { finance: 'Finance', marketing: 'Marketing', consulting: 'Consulting' },
+    ctaTile: 'Your brand<br><em>next?</em>',
   },
 };
 

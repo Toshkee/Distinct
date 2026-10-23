@@ -8,8 +8,7 @@
       name="description"
       content="Distinct je kompanija za dizajn biznisa iz Podgorice: biznis konsalting, finansije i računovodstvo, brending i marketing — jedan partner od ideje do rasta."
     />
-    <meta name="theme-color" content="#151311" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- @include head.html -->
     <meta property="og:title" content="Distinct — Design your future" />
     <meta property="og:image" content="/video/showreel-poster.jpg" />
   </head>
@@ -20,41 +19,7 @@
       <div class="loader__count"><span>0</span>%</div>
     </div>
 
-    <div class="cursor" aria-hidden="true"><span class="cursor__label"></span></div>
-
-    <!-- Header -->
-    <header class="header">
-      <a href="#top" class="header__logo" aria-label="Distinct — početna" data-logo></a>
-      <nav class="header__nav" aria-label="Glavna navigacija">
-        <a href="#usluge" data-i18n="nav.services">Usluge</a>
-        <a href="#pristup" data-i18n="nav.approach">Pristup</a>
-        <a href="#projekti" data-i18n="nav.work">Projekti</a>
-        <a href="#o-nama" data-i18n="nav.about">O nama</a>
-        <a href="#kontakt" data-i18n="nav.contact">Kontakt</a>
-      </nav>
-      <div class="header__right">
-        <div class="lang" role="group" aria-label="Jezik">
-          <button type="button" data-lang="me">ME</button>
-          <button type="button" data-lang="en">EN</button>
-        </div>
-        <a href="#kontakt" class="btn btn--small btn--dark header__cta" data-i18n="nav.cta">Zakažite razgovor</a>
-        <button class="burger" type="button" aria-label="Meni" aria-expanded="false"><span></span><span></span></button>
-      </div>
-    </header>
-
-    <div class="menu" aria-hidden="true">
-      <nav class="menu__links">
-        <a href="#usluge"><span data-i18n="nav.services">Usluge</span></a>
-        <a href="#pristup"><span data-i18n="nav.approach">Pristup</span></a>
-        <a href="#projekti"><span data-i18n="nav.work">Projekti</span></a>
-        <a href="#o-nama"><span data-i18n="nav.about">O nama</span></a>
-        <a href="#kontakt"><span data-i18n="nav.contact">Kontakt</span></a>
-      </nav>
-      <div class="menu__foot">
-        <a href="mailto:info@distinct.co.me">info@distinct.co.me</a>
-        <a href="tel:+38269677377">+382 69 677 377</a>
-      </div>
-    </div>
+    <!-- @include header.html -->
 
     <main id="top">
       <!-- Hero -->
@@ -398,23 +363,7 @@
       </section>
     </main>
 
-    <footer class="footer">
-      <div class="wrap footer__top">
-        <p data-i18n="footer.tag">Business design consulting — Podgorica, Crna Gora.</p>
-        <nav>
-          <a href="#usluge" data-i18n="nav.services">Usluge</a>
-          <a href="#pristup" data-i18n="nav.approach">Pristup</a>
-          <a href="#projekti" data-i18n="nav.work">Projekti</a>
-          <a href="#kontakt" data-i18n="nav.contact">Kontakt</a>
-        </nav>
-        <a href="#top" class="footer__up" data-i18n="footer.up">Na vrh ↑</a>
-      </div>
-      <div class="footer__mark wrap" data-logo="footer"></div>
-      <div class="wrap footer__bottom">
-        <span>© 2026 Distinct</span>
-        <span>Design your future.</span>
-      </div>
-    </footer>
+    <!-- @include footer.html -->
 
     <script type="module" src="/src/main.js"></script>
   </body>

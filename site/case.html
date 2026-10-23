@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="sr-ME">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Projekat — Distinct</title>
+    <meta name="description" content="Studija slučaja — Distinct, business design consulting iz Podgorice." />
+    <!-- @include head.html -->
+  </head>
+  <body class="page-case">
+    <!-- @include header.html -->
+
+    <main id="top" class="case">
+      <section class="case-hero wrap">
+        <a href="/#projekti" class="case-back"><span class="case-back__arrow">←</span> <span data-i18n="case.back">Svi projekti</span></a>
+        <p class="eyebrow case-hero__eyebrow"><span class="dot"></span> <span data-case="industry"></span></p>
+        <h1 class="case-hero__title" data-case="name"></h1>
+        <p class="case-hero__intro" data-case="intro"></p>
+        <dl class="case-meta">
+          <div>
+            <dt data-i18n="case.client">Klijent</dt>
+            <dd data-case="name"></dd>
+          </div>
+          <div>
+            <dt data-i18n="case.industry">Industrija</dt>
+            <dd data-case="industry"></dd>
+          </div>
+          <div data-case-optional="location">
+            <dt data-i18n="case.location">Lokacija</dt>
+            <dd data-case="location"></dd>
+          </div>
+          <div>
+            <dt data-i18n="case.services">Usluge</dt>
+            <dd data-case="services"></dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="case-cover wrap">
+        <div class="case-cover__frame">
+          <img class="case-cover__img" data-case="img" alt="" />
+        </div>
+      </section>
+
+      <section class="story wrap">
+        <aside class="story__nav" aria-hidden="true">
+          <div class="story__rail"><i class="story__fill"></i></div>
+          <ol>
+            <li data-step="problem"><span>01</span> <span data-i18n="case.problem">Problem</span></li>
+            <li data-step="solution"><span>02</span> <span data-i18n="case.solution">Rješenje</span></li>
+            <li data-step="result"><span>03</span> <span data-i18n="case.result">Rezultat</span></li>
+          </ol>
+        </aside>
+
+        <div class="story__chapters">
+          <article class="chapter" id="problem">
+            <p class="chapter__label"><span>01</span> <span data-i18n="case.problem">Problem</span></p>
+            <p class="chapter__text" data-case="problem"></p>
+          </article>
+
+          <article class="chapter" id="solution">
+            <p class="chapter__label"><span>02</span> <span data-i18n="case.solution">Rješenje</span></p>
+            <p class="chapter__text" data-case="solution"></p>
+            <ul class="chapter__chips" data-case="chips"></ul>
+          </article>
+
+          <article class="chapter chapter--result" id="result">
+            <p class="chapter__label"><span>03</span> <span data-i18n="case.result">Rezultat</span></p>
+            <p class="chapter__text" data-case="result"></p>
+            <div class="results" data-case="results"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="case-next">
+        <a class="case-next__link wrap" data-case="next" data-cursor-hide>
+          <span class="case-next__label" data-i18n="case.next">Sljedeći projekat</span>
+          <span class="case-next__row">
+            <strong class="case-next__name" data-case="next-name"></strong>
+            <span class="case-next__thumb"><img data-case="next-img" alt="" /></span>
+          </span>
+        </a>
+      </section>
+
+      <section class="cta">
+        <div class="wrap cta__inner">
+          <h2 class="cta__title split" data-i18n="case.cta">Sljedeća priča može biti <em>vaša.</em></h2>
+          <a href="/#kontakt" class="cta__btn" data-magnetic data-cursor-hide>
+            <span data-i18n="cta.btn">Pišite nam</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <!-- @include footer.html -->
+
+    <script type="module" src="/src/case.js"></script>
+  </body>
+</html>
