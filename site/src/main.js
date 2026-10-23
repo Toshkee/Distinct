@@ -215,12 +215,17 @@ function scrollAnimations() {
     cards.forEach((card, i) => {
       const next = cards[i + 1];
       if (!next) return;
-      gsap.to(card, {
-        scale: 0.92 - (cards.length - i - 2) * 0.02,
-        filter: 'brightness(0.9)',
-        ease: 'none',
-        scrollTrigger: { trigger: next, start: 'top bottom', end: 'top 20%', scrub: true },
-      });
+      // explicit start value: tweening from the computed `filter: none` starts at brightness(0)
+      gsap.fromTo(
+        card,
+        { scale: 1, filter: 'brightness(1)' },
+        {
+          scale: 0.92 - (cards.length - i - 2) * 0.02,
+          filter: 'brightness(0.9)',
+          ease: 'none',
+          scrollTrigger: { trigger: next, start: 'top bottom', end: 'top 20%', scrub: true },
+        },
+      );
     });
 
     // Approach: pinned horizontal journey along the line
