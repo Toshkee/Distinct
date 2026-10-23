@@ -22,7 +22,17 @@ export const MaskedLine: React.FC<{
 	const exit = exitAt === undefined ? 0 : progress(frame, exitAt, 18, easeInOut);
 	const y = (1 - enter) * 110 - exit * 110;
 	return (
-		<div style={{overflow: 'hidden', paddingBottom: '0.08em', marginBottom: '-0.08em'}}>
+		<div
+			style={{
+				// sized like the text so the em-based room below fits its descenders
+				fontSize: style?.fontSize,
+				overflow: 'hidden',
+				paddingBottom: '0.24em',
+				marginBottom: '-0.24em',
+				paddingRight: '0.1em',
+				marginRight: '-0.1em',
+			}}
+		>
 			<div style={{transform: `translateY(${y}%)`, ...style}}>{children}</div>
 		</div>
 	);
