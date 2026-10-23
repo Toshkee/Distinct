@@ -93,14 +93,14 @@ async function applyFilter(f) {
     tile.hidden = !shows(tile);
     tile.classList.toggle('tile--feature', f === 'all' && 'feature' in tile.dataset);
   });
-  gsap.set(leaving, { clearProps: 'opacity,transform' });
-  gsap.set(entering, { opacity: 0, y: 30 });
+  if (leaving.length) gsap.set(leaving, { clearProps: 'opacity,transform' });
+  if (entering.length) gsap.set(entering, { opacity: 0, y: 30 });
   const endHeight = grid.offsetHeight;
 
   await Promise.all([
     Flip.from(state, { duration, ease: 'expo.inOut' }),
     gsap.fromTo(grid, { height: startHeight }, { height: endHeight, duration, ease: 'expo.inOut', clearProps: 'height' }),
-    gsap.to(entering, { opacity: 1, y: 0, duration: reduced ? 0 : 0.6, stagger: 0.04, delay: duration * 0.5, ease: 'expo.out' }),
+    entering.length && gsap.to(entering, { opacity: 1, y: 0, duration: reduced ? 0 : 0.6, stagger: 0.04, delay: duration * 0.5, ease: 'expo.out' }),
   ]);
   ScrollTrigger.refresh();
 }
@@ -227,27 +227,38 @@ function scrollAnimations() {
   // Approach title (not split, it's pinned)
   gsap.from('.approach .h2', { y: 40, opacity: 0, duration: 1.2, ease: 'expo.out', scrollTrigger: { trigger: '.approach', start: 'top 70%' } });
 
+  // Service cards stack: earlier cards shrink back as the next one slides over.
+  // Each card sticks only once it is fully on screen, so tall cards on phones
+  // are read whole before the next one covers them.
+  const cards = $$('.card');
+  const setCardTops = () => {
+    const top = $('.header').offsetHeight + 16;
+    const step = innerWidth > 900 ? 24 : 10;
+    cards.forEach((card, i) => {
+      card.style.top = `${Math.min(top + i * step, innerHeight - card.offsetHeight - 16)}px`;
+    });
+  };
+  setCardTops();
+  ScrollTrigger.addEventListener('refreshInit', setCardTops);
+  cards.forEach((card, i) => {
+    const next = cards[i + 1];
+    if (!next) return;
+    // explicit start value: tweening from the computed `filter: none` starts at brightness(0)
+    gsap.fromTo(
+      card,
+      { scale: 1, filter: 'brightness(1)' },
+      {
+        scale: 0.92 - (cards.length - i - 2) * 0.02,
+        filter: 'brightness(0.9)',
+        ease: 'none',
+        scrollTrigger: { trigger: next, start: 'top bottom', end: 'top 20%', scrub: true },
+      },
+    );
+  });
+
   const mm = gsap.matchMedia();
 
   mm.add('(min-width: 901px)', () => {
-    // Service cards stack: earlier cards shrink back as the next one slides over
-    const cards = $$('.card');
-    cards.forEach((card, i) => {
-      const next = cards[i + 1];
-      if (!next) return;
-      // explicit start value: tweening from the computed `filter: none` starts at brightness(0)
-      gsap.fromTo(
-        card,
-        { scale: 1, filter: 'brightness(1)' },
-        {
-          scale: 0.92 - (cards.length - i - 2) * 0.02,
-          filter: 'brightness(0.9)',
-          ease: 'none',
-          scrollTrigger: { trigger: next, start: 'top bottom', end: 'top 20%', scrub: true },
-        },
-      );
-    });
-
     // Approach: pinned horizontal journey along the line
     const steps = $('.steps');
     const distance = () => steps.scrollWidth - innerWidth + parseFloat(getComputedStyle($('.approach__track')).paddingLeft) * 2;
@@ -264,19 +275,14 @@ function scrollAnimations() {
     tl.to(steps, { x: () => -distance(), ease: 'none' }, 0)
       .to('.approach__fill', { scaleX: 1, ease: 'none' }, 0)
       .to('.approach__runner', { left: '100%', ease: 'none' }, 0);
-    $$('.step').forEach((step) =>
-      gsap.from(step, {
-        opacity: 0.25,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: step,
-          containerAnimation: tl,
-          start: 'left 85%',
-          end: 'left 45%',
-          scrub: true,
-        },
-      }),
-    );
+    // Steps light up as the runner reaches them; the last one is fully lit
+    // exactly when the horizontal journey ends, whatever the screen width.
+    const stepEls = $$('.step');
+    const span = tl.duration();
+    stepEls.slice(1).forEach((step, i) => {
+      const at = ((i + 1) / (stepEls.length - 1)) * span * 0.8;
+      tl.fromTo(step, { opacity: 0.25 }, { opacity: 1, ease: 'none', duration: span * 0.2 }, at);
+    });
   });
 
   mm.add('(max-width: 900px)', () => {

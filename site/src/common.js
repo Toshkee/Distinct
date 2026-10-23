@@ -1,8 +1,3 @@
-import '@fontsource-variable/geist';
-import '@fontsource/instrument-serif/latin-400-italic.css';
-import '@fontsource/instrument-serif/latin-ext-400-italic.css';
-import './style.css';
-
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
