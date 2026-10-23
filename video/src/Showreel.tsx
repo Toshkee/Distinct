@@ -162,9 +162,15 @@ const PillarsScene: React.FC = () => {
 							borderLeft: i === 0 ? 'none' : `1px solid ${colors.muted}44`,
 						}}
 					>
-						<div style={{...base, fontSize: 26, fontWeight: 500, color: colors.orange}}>
-							<MaskedLine delay={d + 16}>{p.n}</MaskedLine>
-						</div>
+						<div
+							style={{
+								width: 18,
+								height: 18,
+								borderRadius: '50%',
+								background: colors.orange,
+								transform: `scale(${progress(frame, d + 16, 20)})`,
+							}}
+						/>
 						<div>
 							{p.title.map((t, j) => (
 								<MaskedLine key={t} delay={d + 20 + j * 4} style={{...base, fontSize: 84, fontWeight: 600, lineHeight: 1}}>
@@ -260,7 +266,6 @@ const ApproachScene: React.FC = () => {
 								transform: `translateY(${(1 - pop) * 20}px)`,
 							}}
 						>
-							<div style={{color: colors.muted, fontSize: 20, marginBottom: 8}}>0{i + 1}</div>
 							{s}
 						</div>
 					</div>

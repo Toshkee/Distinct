@@ -4,10 +4,10 @@ import {
   $$,
   animateCta,
   animateFooter,
-  arrivedWithWipe,
   finePointer,
   gsap,
   initSite,
+  playLoader,
   reduced,
   revealHeadings,
   scrubWords,
@@ -29,7 +29,8 @@ function renderProjects() {
     projects
       .map((p, i) => {
         const cats = categoriesOf(p);
-        return `<a class="tile${i < 2 ? ' tile--feature' : ''}" href="${caseUrl(p)}" data-cats="${cats.join(' ')}" data-cursor="${t('view')}">
+        const feature = i < 2 ? ' tile--feature" data-feature="' : '';
+        return `<a class="tile${feature}" href="${caseUrl(p)}" data-cats="${cats.join(' ')}" data-cursor="${t('view')}">
           <span class="tile__img">
             <img src="/img/portfolio/${p.img}" alt="${p.name}" loading="lazy" width="600" height="600" />
             <span class="tile__tags">${p.tags.map((tag) => `<span>${label(tag)}</span>`).join('')}</span>
@@ -61,22 +62,61 @@ $$('.header__nav a').forEach((link) => {
 
 /* ---------- Project filter ---------- */
 
+// Leaving tiles fade out first, the rest glide into place while the grid
+// height eases to its new size, then new tiles fade in. Featured tiles only
+// span 2×2 in the unfiltered view so filtered grids stay even.
+const grid = $('[data-grid]');
+let filtering = null;
+let queued = null;
+let tileReveal = []; // scroll-in reveal for tiles; replaced by the filter animation once used
+
+async function applyFilter(f) {
+  const tiles = $$('.tile', grid);
+  const shows = (tile) => f === 'all' || tile.dataset.cats === 'all' || tile.dataset.cats.split(' ').includes(f);
+  const leaving = tiles.filter((tile) => !tile.hidden && !shows(tile));
+  const staying = tiles.filter((tile) => !tile.hidden && shows(tile));
+  const entering = tiles.filter((tile) => tile.hidden && shows(tile));
+  const duration = reduced ? 0 : 0.7;
+
+  if (tileReveal.length) {
+    tileReveal.forEach((st) => st.kill());
+    tileReveal = [];
+    gsap.killTweensOf(tiles);
+    gsap.set(tiles, { clearProps: 'opacity,transform' });
+  }
+
+  if (leaving.length && !reduced) await gsap.to(leaving, { opacity: 0, scale: 0.92, duration: 0.25, ease: 'power2.in' });
+
+  const startHeight = grid.offsetHeight;
+  const state = Flip.getState(staying);
+  tiles.forEach((tile) => {
+    tile.hidden = !shows(tile);
+    tile.classList.toggle('tile--feature', f === 'all' && 'feature' in tile.dataset);
+  });
+  gsap.set(leaving, { clearProps: 'opacity,transform' });
+  gsap.set(entering, { opacity: 0, y: 30 });
+  const endHeight = grid.offsetHeight;
+
+  await Promise.all([
+    Flip.from(state, { duration, ease: 'expo.inOut' }),
+    gsap.fromTo(grid, { height: startHeight }, { height: endHeight, duration, ease: 'expo.inOut', clearProps: 'height' }),
+    gsap.to(entering, { opacity: 1, y: 0, duration: reduced ? 0 : 0.6, stagger: 0.04, delay: duration * 0.5, ease: 'expo.out' }),
+  ]);
+  ScrollTrigger.refresh();
+}
+
 $$('.chip').forEach((chip) =>
-  chip.addEventListener('click', () => {
+  chip.addEventListener('click', async () => {
     $$('.chip').forEach((c) => c.classList.toggle('is-active', c === chip));
-    const f = chip.dataset.filter;
-    const tiles = $$('.tile');
-    const state = Flip.getState(tiles);
-    tiles.forEach((tile) => (tile.hidden = f !== 'all' && tile.dataset.cats !== 'all' && !tile.dataset.cats.split(' ').includes(f)));
-    Flip.from(state, {
-      duration: reduced ? 0 : 0.7,
-      ease: 'power3.inOut',
-      absolute: true,
-      scale: true,
-      onEnter: (els) => gsap.fromTo(els, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.6 }),
-      onLeave: (els) => gsap.to(els, { opacity: 0, scale: 0.9, duration: 0.4 }),
-      onComplete: () => ScrollTrigger.refresh(),
-    });
+    queued = chip.dataset.filter;
+    if (filtering) return; // the latest choice runs when the current one finishes
+    while (queued) {
+      const f = queued;
+      queued = null;
+      filtering = applyFilter(f);
+      await filtering;
+    }
+    filtering = null;
   }),
 );
 
@@ -123,26 +163,6 @@ function intro() {
     .from('.hero__eyebrow, .hero__lead, .hero__actions > *, .hero__scroll', { y: 24, opacity: 0, duration: 1, stagger: 0.07, ease: 'expo.out' }, 0.3)
     .from('.header', { yPercent: -100, duration: 1, ease: 'expo.out', clearProps: 'transform' }, 0.2);
   return tl;
-}
-
-function loader() {
-  const el = $('.loader');
-  const letters = $$('.loader .letter');
-  const dot = $('.loader .accent');
-  const count = $('.loader__count span');
-  const counter = { v: 0 };
-  return gsap
-    .timeline()
-    .from(letters, { y: 44, duration: 0.9, stagger: 0.05, ease: 'expo.out' })
-    .from(dot, { y: -70, opacity: 0, duration: 0.9, ease: 'bounce.out' }, 0.45)
-    .to(counter, { v: 100, duration: 1.4, ease: 'power2.inOut', onUpdate: () => (count.textContent = Math.round(counter.v)) }, 0)
-    .to(el, { clipPath: 'inset(0 0 100% 0)', duration: 1, ease: 'expo.inOut' }, '+=0.15')
-    .add(() => {
-      el.remove();
-      document.body.classList.remove('is-loading');
-      lenis?.start();
-    })
-    .add(intro(), '-=0.55');
 }
 
 function scrollAnimations() {
@@ -278,11 +298,14 @@ function scrollAnimations() {
   });
 
   // Lists and tiles appear in batches
-  ScrollTrigger.batch('.ind, .tile, .partner, .contact__list li, .stat', {
-    start: 'top 92%',
-    once: true,
-    onEnter: (els) => gsap.from(els, { y: 50, opacity: 0, duration: 1, stagger: 0.08, ease: 'expo.out', clearProps: 'transform,opacity' }),
-  });
+  const batchReveal = (targets) =>
+    ScrollTrigger.batch(targets, {
+      start: 'top 92%',
+      once: true,
+      onEnter: (els) => gsap.from(els, { y: 50, opacity: 0, duration: 1, stagger: 0.08, ease: 'expo.out', clearProps: 'transform,opacity' }),
+    });
+  batchReveal('.ind, .partner, .contact__list li, .stat');
+  tileReveal = batchReveal('.tile');
 
   animateCta();
   animateFooter();
@@ -295,34 +318,22 @@ history.scrollRestoration = 'manual';
 scrollTo(0, 0);
 const hashTarget = location.hash.length > 1 ? $(location.hash) : null;
 
-let firstVisit = false;
-try {
-  firstVisit = !arrivedWithWipe && !hashTarget && !sessionStorage.getItem('distinct-intro');
-  sessionStorage.setItem('distinct-intro', '1');
-} catch {}
-
 if (reduced) {
   document.documentElement.classList.add('reduced');
-  $('.loader').remove();
+  $('.loader')?.remove();
   wipeIn();
   hashTarget?.scrollIntoView();
 } else {
-  if (firstVisit) {
-    document.body.classList.add('is-loading');
-    lenis.stop();
-  } else $('.loader').remove();
-
-  document.fonts.ready.then(() => {
+  const loading = playLoader(lenis);
+  document.fonts.ready.then(async () => {
     scrollAnimations();
-    if (firstVisit) loader();
-    else {
-      if (hashTarget) {
-        ScrollTrigger.refresh();
-        scrollToTarget(hashTarget, true);
-      }
-      intro();
-      wipeIn();
+    if (hashTarget) {
+      ScrollTrigger.refresh();
+      scrollToTarget(hashTarget, true);
     }
+    wipeIn();
+    await loading;
+    intro();
     addEventListener('load', () => ScrollTrigger.refresh());
   });
 }

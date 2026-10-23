@@ -163,7 +163,7 @@ export const t = (key) => ui[getLang()][key];
 
 export function applyLanguage() {
   const lang = getLang();
-  document.documentElement.lang = lang === 'en' ? 'en' : 'sr-ME';
+  document.documentElement.lang = lang === 'en' ? 'en' : 'sr-Latn-ME';
   document.querySelectorAll('[data-lang]').forEach((b) => b.classList.toggle('is-active', b.dataset.lang === lang));
   if (lang === 'en') {
     document.querySelectorAll('[data-i18n]').forEach((el) => {

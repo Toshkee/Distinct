@@ -80,6 +80,36 @@ addEventListener('pageshow', (e) => {
   gsap.set('.page-wipe', { clipPath: 'inset(100% 0 0 0)' });
 });
 
+/* ---------- Logo intro ---------- */
+
+/**
+ * Plays the logo intro on every full page load (not after an in-site transition).
+ * Resolves as the cover starts lifting, so the page intro can overlap it.
+ */
+export function playLoader(lenis) {
+  const el = $('.loader');
+  if (!el) return Promise.resolve();
+  if (arrivedWithWipe || reduced) {
+    el.remove();
+    return Promise.resolve();
+  }
+  document.body.classList.add('is-loading');
+  lenis?.stop();
+  return new Promise((reveal) => {
+    gsap
+      .timeline()
+      .from($$('.letter', el), { y: 44, duration: 0.9, stagger: 0.05, ease: 'expo.out' }, 0.15)
+      .from($('.accent', el), { y: -70, opacity: 0, duration: 0.9, ease: 'bounce.out' }, 0.6)
+      .to(el, { clipPath: 'inset(0 0 100% 0)', duration: 1, ease: 'expo.inOut' }, '+=0.2')
+      .add(reveal, '-=0.6')
+      .add(() => {
+        el.remove();
+        document.body.classList.remove('is-loading');
+        lenis?.start();
+      });
+  });
+}
+
 /* ---------- Shared site chrome ---------- */
 
 export function initSite() {
@@ -210,6 +240,7 @@ export function revealHeadings(exclude = '.hero__eyebrow, .case-hero__eyebrow') 
     SplitText.create(el, {
       type: 'lines',
       mask: 'lines',
+      linesClass: 'split-line',
       autoSplit: true,
       onSplit: (self) =>
         gsap.from(self.lines, {

@@ -6,6 +6,7 @@ import {
   arrivedWithWipe,
   gsap,
   initSite,
+  playLoader,
   reduced,
   revealHeadings,
   scrubWords,
@@ -55,10 +56,9 @@ function render() {
         .join('')}</div>`
     : `<p class="results__title">${t('delivered')}</p>
        <ol class="delivered">${project.tags
-         .map((name, i) => {
+         .map((name) => {
            const cat = categoryOfTag(name);
            return `<li class="delivered__item delivered__item--${cat}">
-             <span class="delivered__num">${String(i + 1).padStart(2, '0')}</span>
              <span class="delivered__name">${tag(name)}</span>
              <span class="delivered__cat">${t('cat')[cat]}</span>
            </li>`;
@@ -96,7 +96,7 @@ function tintCover(img) {
 /* ---------- Animations ---------- */
 
 function intro() {
-  const title = SplitText.create('.case-hero__title', { type: 'lines,chars', mask: 'lines' });
+  const title = SplitText.create('.case-hero__title', { type: 'lines,chars', mask: 'lines', linesClass: 'split-line' });
   return gsap
     .timeline()
     .from(title.chars, { yPercent: 110, duration: 1.1, stagger: 0.018, ease: 'expo.out' })
@@ -163,7 +163,7 @@ function scrollAnimations() {
 
 if (project) {
   render();
-  initSite();
+  const { lenis } = initSite();
 
   history.scrollRestoration = 'manual';
   scrollTo(0, 0);
@@ -172,11 +172,13 @@ if (project) {
     document.documentElement.classList.add('reduced');
     wipeIn();
   } else {
-    document.fonts.ready.then(() => {
+    const loading = playLoader(lenis);
+    document.fonts.ready.then(async () => {
       scrollAnimations();
       const tl = intro().pause();
-      // start the intro while the cover is still lifting off
       wipeIn();
+      await loading;
+      // start the intro while the cover is still lifting off
       gsap.delayedCall(arrivedWithWipe ? 0.45 : 0, () => tl.play());
       addEventListener('load', () => ScrollTrigger.refresh());
     });
